@@ -5795,10 +5795,10 @@ function App(){
     try{
     // -- Priority -2: Drink category chooser (shows 2 tappable cards before carousel) --
     const _q = text.toLowerCase().trim();
-    const _drinkCatQ = /what (kind|type|kinds|types)s? of (drinks?|beverages?)/.test(_q)
-      || /what (drinks?|beverages?) do you (have|serve|offer)/.test(_q)
-      || /do you (have|serve) (any )?(drinks?|beverages?)/.test(_q)
-      || /what (do you have|can i (get|have|order)).*drink/.test(_q);
+    const _hasDrinkWord = /\bdrinks?\b|\bbeverages?\b/.test(_q);
+    const _hasQuestionWord = /\bwhat\b|\bwhich\b|\bany\b|\bdo you\b|\bshow\b|\bhave\b|\bcan i\b/.test(_q);
+    const _isSpecificDrink = /\bbeer\b|\bwine\b|\bcocktail\b|\bbudweiser\b|\bcoke\b|\bjuice\b|\bsoda\b|\blemonade\b|\bwater\b|\btea\b|\bcoffee\b|\bshot\b|\bwhiskey\b|\bvodka\b|\brum\b|\bgin\b/.test(_q);
+    const _drinkCatQ = (_hasDrinkWord && _hasQuestionWord) && !_isSpecificDrink;
     if(_drinkCatQ){
       setThinking(false);
       setChoiceCards([
