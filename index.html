@@ -2390,11 +2390,13 @@ function getWelcomeVideo(messages){
 function getSavedVolume(){ try{ const v=parseFloat(localStorage.getItem('stellas_volume')); return(!isNaN(v)&&v>=0&&v<=1)?v:0.5; }catch(e){ return 0.5; } }
 function saveVolume(v){ try{ localStorage.setItem('stellas_volume',String(v)); }catch(e){} }
 
-function AvatarDisplay({videoUrl,posterUrl,height='62vh',active=false,loop=false,onEnded,fallbackVideoUrl,staticImgSrc,idleAfter=false}){
+function AvatarDisplay({videoUrl,posterUrl,height='62vh',active=false,loop=false,onEnded,fallbackVideoUrl,staticImgSrc,idleAfter=false,mutedOverride=false}){
   const videoRef = useRef();
   const myPlayId = useRef(0);
   const[ended,setEnded]=useState(false);
   const[muted,setMuted]=useState(true);
+  // When mutedOverride (drink chooser etc.), force video muted regardless of user toggle
+  useEffect(()=>{ if(mutedOverride && videoRef.current){ videoRef.current.muted=true; } }, [mutedOverride, videoUrl]);
   const[videoErr,setVideoErr]=useState(false);
   const[volume,setVolume]=useState(getSavedVolume);
   const sparks=[[15,0],[30,.5],[50,.9],[70,.3],[85,1.2],[25,1.6],[60,2.0]];
@@ -2846,13 +2848,14 @@ function ResponseScreen({item,response,videoUrl,welcomeVideoUrl,welcomeImgSrc,on
       ? h(HeyGenPlayer,{text:response,onFallback:()=>{setHeygenFallback(true);}})
       : h('div',{style:{position:'relative'}},
           h(AvatarDisplay,{
-            videoUrl: hasChoiceCards ? '' : (hasCarousel ? (welcomeVideoUrl||'') : (videoUrl||'')),
+            videoUrl: hasChoiceCards ? (videoUrl||'') : (hasCarousel ? (welcomeVideoUrl||'') : (videoUrl||'')),
             posterUrl:idleImg,
-            fallbackVideoUrl: (hasCarousel||hasChoiceCards) ? '' : fallback,
+            fallbackVideoUrl: hasCarousel ? '' : fallback,
             staticImgSrc:idleImg,
             height:'62vh',
-            active: (hasCarousel||hasChoiceCards) ? false : (hasItem && hasVideo),
-            loop: hasCarousel,
+            active: hasCarousel ? false : (hasItem && hasVideo) || hasChoiceCards,
+            loop: hasCarousel || hasChoiceCards,
+            mutedOverride: hasChoiceCards,
             idleAfter:ordered,
             onEnded: ordered ? ()=>{ console.log('[Order] Confirm video ended'); } : null,
           }),
@@ -5875,10 +5878,13 @@ function App(){
       setCarouselLabel('');
       const _drinkMsg = "Are you looking for the regular drinks menu or our adult beverage menu?";
       window._annaForceTTS = true;
-      setAiResponse('');  // reset first so useEffect always re-fires
+      window._annaMuteVideo = true;  // play video muted so Cartesia voice can speak
+      setAiResponse('');
       setTimeout(()=>setAiResponse(_drinkMsg), 50);
       setSelectedItem(null);
-      setVideoUrl('');
+      // Play anna-show-drinks video (muted) so Anna is visibly talking
+      const _r2 = store.get('anna_r2_base','https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev').replace(/\/$/,'');
+      setVideoUrl(_r2+'/anna-show-drinks.mp4');
       setOrdered(false);
       setScreen('response');
       return;
