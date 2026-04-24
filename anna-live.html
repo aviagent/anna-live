@@ -468,9 +468,10 @@ const store={
   get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.warn('localStorage set failed:',k,e);}},
 };
-// Force correct Cartesia credentials — overrides any stale localStorage
+// Force correct credentials + voice settings — overrides any stale localStorage
 store.set('anna_cartesia_key','sk_car_uYjUXbPhRXncyjAW7411TZ');
 store.set('anna_voice_id','d8955cfc-7f79-4d3f-a460-87c56ba0c76b');
+(()=>{ const _s=store.get('stellas_settings',{}); store.set('stellas_settings',{..._s,readAloud:true,continuousListen:true}); })();
 
 // ==============================================================
 // DATA LAYER -- Supabase-first, IndexedDB offline cache
