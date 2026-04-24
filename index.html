@@ -281,26 +281,21 @@ video::-webkit-media-controls-start-playback-button{display:none!important}
   transform-origin:center bottom;
 }
 /* ─── TALKING / LIP-SYNC STATE ─── */
-@keyframes annaLipSync{
-  0%  {filter:brightness(1)   saturate(1)}
-  20% {filter:brightness(1.06)saturate(1.08)}
-  45% {filter:brightness(1.02)saturate(1.03)}
-  65% {filter:brightness(1.07)saturate(1.1)}
-  85% {filter:brightness(1.01)saturate(1.01)}
-  100%{filter:brightness(1)   saturate(1)}
+@keyframes annaTalkFrame{
+  0%   {transform:scale(1.000);transform-origin:center 25%}
+  30%  {transform:scale(1.006);transform-origin:center 25%}
+  60%  {transform:scale(1.003);transform-origin:center 25%}
+  100% {transform:scale(1.000);transform-origin:center 25%}
 }
-@keyframes annaLipSyncImg{
-  0%  {transform:scale(1)     translateY(0);   filter:brightness(1)}
-  30% {transform:scale(1.008) translateY(-3px);filter:brightness(1.05)}
-  60% {transform:scale(1.005) translateY(-2px);filter:brightness(1.03)}
-  100%{transform:scale(1)     translateY(0);   filter:brightness(1)}
+/* Animate the container, not the video element — avoids blink/jitter */
+.anna-talking .avatar-frame{
+  animation:annaTalkFrame 0.42s ease-in-out infinite!important;
 }
 .anna-talking .idle-breathe{
-  animation:annaLipSyncImg 0.9s ease-in-out infinite!important;
+  animation:annaTalkFrame 0.42s ease-in-out infinite!important;
 }
-.anna-talking .idle-video{
-  animation:annaLipSync 0.75s ease-in-out infinite;
-}
+/* No transform on the video element itself */
+.anna-talking .idle-video{ animation:none; }
 .anna-talking .avatar-frame,
 .anna-talking .avatar-video-wrap{
   box-shadow:0 0 55px rgba(201,168,76,.65),var(--shadow-glow)!important;
@@ -2113,7 +2108,8 @@ async function _cartesiaTTS(text) {
     output_format: { container: 'mp3', encoding: 'mp3', sample_rate: 44100 },
   });
   const r = await fetch('https://api.cartesia.ai/tts/bytes', { method: 'POST', headers, body });
-  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || e.message || 'Cartesia ' + r.status); }
+  if (!r.ok) { const e = await r.json().catch(() => ({})); const msg = e.error || e.message || 'Cartesia '+r.status; console.error('[Cartesia] FAILED:', r.status, msg, '| key prefix:', cartesiaKey.slice(0,12)); throw new Error(msg); }
+  console.log('[Cartesia] TTS OK');
   return await r.blob();
 }
 
