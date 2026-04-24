@@ -2457,12 +2457,13 @@ function AvatarDisplay({videoUrl,posterUrl,height='62vh',active=false,loop=false
     });
   },[playUrl]);
 
-  // Sync muted to DOM
+  // Sync muted to DOM (mutedOverride forces muted regardless of user toggle)
   useEffect(()=>{
     const v=videoRef.current; if(!v) return;
-    v.muted=muted;
-    if(!muted){ v.volume=volume; v.play().catch(()=>{}); }
-  },[muted]);
+    const effectiveMuted = mutedOverride || muted;
+    v.muted = effectiveMuted;
+    if(!effectiveMuted){ v.volume=volume; v.play().catch(()=>{}); }
+  },[muted, mutedOverride]);
 
   // Sync volume to DOM
   useEffect(()=>{
