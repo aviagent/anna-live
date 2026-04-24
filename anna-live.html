@@ -2117,6 +2117,15 @@ async function _cartesiaTTS(text) {
 let _audioQueue = [];
 let _isPlayingAudio = false;
 let _ttsOnComplete = null; // fires once when queue fully drains
+let _annAudioCtx = null;  // shared AudioContext — unlocked on mic tap
+
+function _getOrCreateAudioCtx() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!_annAudioCtx || _annAudioCtx.state === 'closed') _annAudioCtx = new AC();
+  if (_annAudioCtx.state === 'suspended') _annAudioCtx.resume().catch(()=>{});
+  return _annAudioCtx;
+}
 
 function _enqueueAudio(blob) {
   _audioQueue.push(blob);
@@ -2132,12 +2141,28 @@ function _playNextAudio() {
   }
   _isPlayingAudio = true;
   const blob = _audioQueue.shift();
-  const url = URL.createObjectURL(blob);
-  const audio = new Audio(url);
-  audio.volume = getSavedVolume ? getSavedVolume() : 0.8;
-  audio.onended = () => { URL.revokeObjectURL(url); _playNextAudio(); };
-  audio.onerror = () => { URL.revokeObjectURL(url); _playNextAudio(); };
-  audio.play().catch(() => _playNextAudio());
+  const ctx = _getOrCreateAudioCtx();
+  if (ctx) {
+    // Use AudioContext — works on iOS without user gesture once ctx is unlocked
+    blob.arrayBuffer()
+      .then(buf => ctx.decodeAudioData(buf))
+      .then(decoded => {
+        const src = ctx.createBufferSource();
+        src.buffer = decoded;
+        src.connect(ctx.destination);
+        src.onended = () => _playNextAudio();
+        src.start(0);
+      })
+      .catch(e => { console.warn('[Audio] decode failed:', e); _playNextAudio(); });
+  } else {
+    // Non-iOS fallback
+    const url = URL.createObjectURL(blob);
+    const audio = new Audio(url);
+    audio.volume = getSavedVolume ? getSavedVolume() : 0.8;
+    audio.onended = () => { URL.revokeObjectURL(url); _playNextAudio(); };
+    audio.onerror = () => { URL.revokeObjectURL(url); _playNextAudio(); };
+    audio.play().catch(() => _playNextAudio());
+  }
 }
 
 function speakText(text, langCode, onComplete) {
@@ -5717,10 +5742,13 @@ function App(){
     setTranscript('');setOrdered(false);
     stopTTS(); // cancel any reading aloud before listening starts
 
-    // Resume AudioContext + unlock iOS speechSynthesis inside gesture handler
+    // Unlock AudioContext + speechSynthesis inside this gesture handler (iOS requirement)
+    try{ _getOrCreateAudioCtx(); }catch(e){}
     try{
-      const AC=window.AudioContext||window.webkitAudioContext;
-      if(AC){ const ac=new AC(); ac.resume().catch(()=>{}); }
+      if(window.speechSynthesis){
+        const _u=new SpeechSynthesisUtterance(''); _u.volume=0;
+        window.speechSynthesis.speak(_u);
+      }
     }catch(e){}
     try{
       if(window.speechSynthesis){
