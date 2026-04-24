@@ -5586,11 +5586,12 @@ function App(){
     if(forceTTS) window._annaForceTTS = false;
     if(!settings.readAloud && !forceTTS) return;
     const langObj = LANGUAGES.find(l=>l.code===(settings.language||'en-US'))||LANGUAGES[0];
-    const doAutoListen = settings.continuousListen !== false && !showAdmin;
+    // Skip auto-listen when choice cards are showing — user taps a card instead
+    const doAutoListen = settings.continuousListen !== false && !showAdmin && choiceCards.length === 0;
     // Small delay so video audio doesn't fight speech
     const tid = setTimeout(()=>{
       speakText(aiResponse, langObj.tts, doAutoListen ? ()=>{ startListening(); } : null);
-      console.log('[TTS] Auto-read response in', langObj.label, doAutoListen ? '| auto-listen ON' : '');
+      console.log('[TTS] Auto-read response in', langObj.label, doAutoListen ? '| auto-listen ON' : '| cards active, no auto-listen');
     }, 600);
     return ()=>clearTimeout(tid);
   },[aiResponse]);
