@@ -5882,9 +5882,9 @@ function App(){
       setAiResponse('');
       setTimeout(()=>setAiResponse(_drinkMsg), 50);
       setSelectedItem(null);
-      // Play anna-show-drinks video (muted) so Anna is visibly talking
+      // Play show-drinks video (muted) so Anna is visibly talking
       const _r2 = store.get('anna_r2_base','https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev').replace(/\/$/,'');
-      setVideoUrl(_r2+'/anna-show-drinks.mp4');
+      setVideoUrl(_r2+'/avi-anna-show-drinks.mp4');
       setOrdered(false);
       setScreen('response');
       return;
