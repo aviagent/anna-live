@@ -281,20 +281,16 @@ video::-webkit-media-controls-start-playback-button{display:none!important}
   transform-origin:center bottom;
 }
 /* ─── TALKING / LIP-SYNC STATE ─── */
-@keyframes annaTalkFrame{
-  0%   {transform:scale(1.000);transform-origin:center 25%}
-  30%  {transform:scale(1.006);transform-origin:center 25%}
-  60%  {transform:scale(1.003);transform-origin:center 25%}
-  100% {transform:scale(1.000);transform-origin:center 25%}
+@keyframes annaTalkGlow{
+  0%,100%{box-shadow:0 0 40px rgba(201,168,76,.5),var(--shadow-glow)}
+  50%    {box-shadow:0 0 70px rgba(201,168,76,.85),0 0 120px rgba(201,168,76,.3),var(--shadow-glow)}
 }
-/* Animate the container, not the video element — avoids blink/jitter */
-.anna-talking .avatar-frame{
-  animation:annaTalkFrame 0.42s ease-in-out infinite!important;
+/* Lip sync = gold glow pulse only — no transforms, no shaking */
+.anna-talking .avatar-frame,
+.anna-talking .avatar-video-wrap{
+  animation:annaTalkGlow 0.55s ease-in-out infinite!important;
 }
-.anna-talking .idle-breathe{
-  animation:annaTalkFrame 0.42s ease-in-out infinite!important;
-}
-/* No transform on the video element itself */
+.anna-talking .idle-breathe{ animation:none!important; }
 .anna-talking .idle-video{ animation:none; }
 .anna-talking .avatar-frame,
 .anna-talking .avatar-video-wrap{
@@ -472,6 +468,9 @@ const store={
   get:(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
   set:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){console.warn('localStorage set failed:',k,e);}},
 };
+// Force correct Cartesia credentials — overrides any stale localStorage
+store.set('anna_cartesia_key','sk_car_uYjUXbPhRXncyjAW7411TZ');
+store.set('anna_voice_id','d8955cfc-7f79-4d3f-a460-87c56ba0c76b');
 
 // ==============================================================
 // DATA LAYER -- Supabase-first, IndexedDB offline cache
