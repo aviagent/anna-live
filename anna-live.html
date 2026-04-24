@@ -2337,7 +2337,9 @@ async function checkR2VideoLibrary(userText){
   if(!intent) return null;
   const filename = manifest[intent];
   if(!filename) return null;
-  return r2+'/'+filename;
+  // R2 bucket uses avi- prefix; manifest.json lists bare names. Auto-add prefix if needed.
+  const fixed = filename.startsWith('avi-') ? filename : 'avi-'+filename;
+  return r2+'/'+fixed;
 }
 
 function playVideoUrl(url, onEnded){
