@@ -2804,13 +2804,13 @@ function ResponseScreen({item,response,videoUrl,welcomeVideoUrl,welcomeImgSrc,on
       ? h(HeyGenPlayer,{text:response,onFallback:()=>{setHeygenFallback(true);}})
       : h('div',{style:{position:'relative'}},
           h(AvatarDisplay,{
-            videoUrl: (hasCarousel||hasChoiceCards) ? (welcomeVideoUrl||'') : (videoUrl||''),
+            videoUrl: hasChoiceCards ? '' : (hasCarousel ? (welcomeVideoUrl||'') : (videoUrl||'')),
             posterUrl:idleImg,
             fallbackVideoUrl: (hasCarousel||hasChoiceCards) ? '' : fallback,
             staticImgSrc:idleImg,
             height:'62vh',
             active: (hasCarousel||hasChoiceCards) ? false : (hasItem && hasVideo),
-            loop: hasCarousel||hasChoiceCards,
+            loop: hasCarousel,
             idleAfter:ordered,
             onEnded: ordered ? ()=>{ console.log('[Order] Confirm video ended'); } : null,
           }),
@@ -5718,10 +5718,16 @@ function App(){
     setTranscript('');setOrdered(false);
     stopTTS(); // cancel any reading aloud before listening starts
 
-    // Resume AudioContext synchronously inside this gesture handler (iOS requirement)
+    // Resume AudioContext + unlock iOS speechSynthesis inside gesture handler
     try{
       const AC=window.AudioContext||window.webkitAudioContext;
       if(AC){ const ac=new AC(); ac.resume().catch(()=>{}); }
+    }catch(e){}
+    try{
+      if(window.speechSynthesis){
+        const _u=new SpeechSynthesisUtterance(''); _u.volume=0;
+        window.speechSynthesis.speak(_u);
+      }
     }catch(e){}
 
     forceUnlock(); // also unmute any pending videos
@@ -5811,7 +5817,8 @@ function App(){
       setCarouselLabel('');
       const _drinkMsg = "Are you looking for the regular drinks menu or our adult beverage menu?";
       window._annaForceTTS = true;
-      setAiResponse(_drinkMsg);
+      setAiResponse('');  // reset first so useEffect always re-fires
+      setTimeout(()=>setAiResponse(_drinkMsg), 50);
       setSelectedItem(null);
       setVideoUrl('');
       setOrdered(false);
