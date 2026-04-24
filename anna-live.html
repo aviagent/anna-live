@@ -2870,7 +2870,6 @@ function ResponseScreen({item,response,videoUrl,welcomeVideoUrl,welcomeImgSrc,on
             height:'62vh',
             active: hasCarousel ? false : (hasItem && hasVideo) || hasChoiceCards,
             loop: hasCarousel || hasChoiceCards,
-            mutedOverride: hasChoiceCards,
             idleAfter:ordered,
             onEnded: ordered ? ()=>{ console.log('[Order] Confirm video ended'); } : null,
           }),
@@ -5892,13 +5891,10 @@ function App(){
       ]);
       setCarouselItems([]);
       setCarouselLabel('');
-      const _drinkMsg = "Are you looking for the regular drinks menu or our adult beverage menu?";
-      window._annaForceTTS = true;
-      window._annaMuteVideo = true;  // play video muted so Cartesia voice can speak
-      setAiResponse('');
-      setTimeout(()=>setAiResponse(_drinkMsg), 50);
+      // Show caption text but DON'T trigger Cartesia — video has its own audio
+      setAiResponse("Are you looking for the regular drinks menu or our adult beverage menu?");
       setSelectedItem(null);
-      // Play show-drinks video (muted) so Anna is visibly talking
+      // Play the show-drinks video with its own audio
       const _r2 = store.get('anna_r2_base','https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev').replace(/\/$/,'');
       setVideoUrl(_r2+'/avi-anna-show-drinks.mp4');
       setOrdered(false);
