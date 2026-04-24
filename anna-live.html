@@ -2398,7 +2398,19 @@ function AvatarDisplay({videoUrl,posterUrl,height='62vh',active=false,loop=false
   const[ended,setEnded]=useState(false);
   const[muted,setMuted]=useState(true);
   // When mutedOverride (drink chooser etc.), force video muted regardless of user toggle
-  useEffect(()=>{ if(mutedOverride && videoRef.current){ videoRef.current.muted=true; } }, [mutedOverride, videoUrl]);
+  useEffect(()=>{
+    if(mutedOverride && videoRef.current){
+      const v = videoRef.current;
+      v.muted = true;
+      // Force play attempt — needed on iOS when video is muted+autoplay but doesn't start
+      const tryPlay = () => { v.play().catch(()=>{}); };
+      tryPlay();
+      // Retry after a short delay in case initial load blocked
+      const t1 = setTimeout(tryPlay, 200);
+      const t2 = setTimeout(tryPlay, 600);
+      return ()=>{ clearTimeout(t1); clearTimeout(t2); };
+    }
+  }, [mutedOverride, videoUrl]);
   const[videoErr,setVideoErr]=useState(false);
   const[volume,setVolume]=useState(getSavedVolume);
   const sparks=[[15,0],[30,.5],[50,.9],[70,.3],[85,1.2],[25,1.6],[60,2.0]];
