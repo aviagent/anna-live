@@ -5522,7 +5522,9 @@ function App(){
   useEffect(()=>{
     if(!aiResponse) return;
     const settings = loadSettings();
-    if(!settings.readAloud) return;
+    const forceTTS = !!window._annaForceTTS;
+    if(forceTTS) window._annaForceTTS = false;
+    if(!settings.readAloud && !forceTTS) return;
     const langObj = LANGUAGES.find(l=>l.code===(settings.language||'en-US'))||LANGUAGES[0];
     const doAutoListen = settings.continuousListen !== false && !showAdmin;
     // Small delay so video audio doesn't fight speech
@@ -5808,14 +5810,12 @@ function App(){
       setCarouselItems([]);
       setCarouselLabel('');
       const _drinkMsg = "Are you looking for the regular drinks menu or our adult beverage menu?";
+      window._annaForceTTS = true;
       setAiResponse(_drinkMsg);
       setSelectedItem(null);
       setVideoUrl('');
       setOrdered(false);
       setScreen('response');
-      // Speak directly — bypass readAloud check since this was voice-triggered
-      const _drinkLang = (loadSettings().language)||'en-US';
-      setTimeout(()=>speakText(_drinkMsg, _drinkLang, null), 400);
       return;
     }
 
