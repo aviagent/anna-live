@@ -282,21 +282,24 @@ video::-webkit-media-controls-start-playback-button{display:none!important}
 }
 /* ─── TALKING / LIP-SYNC STATE ─── */
 @keyframes annaLipSync{
-  0%  {transform:scale(1)    translateY(0);   filter:brightness(1)}
-  12% {transform:scale(1.022)translateY(-5px);filter:brightness(1.07)}
-  25% {transform:scale(1.009)translateY(-2px);filter:brightness(1.02)}
-  40% {transform:scale(1.025)translateY(-6px);filter:brightness(1.08)}
-  55% {transform:scale(1.007)translateY(-1px);filter:brightness(1.01)}
-  70% {transform:scale(1.019)translateY(-4px);filter:brightness(1.05)}
-  85% {transform:scale(1.005)translateY(-1px)}
-  100%{transform:scale(1)    translateY(0);   filter:brightness(1)}
+  0%  {filter:brightness(1)   saturate(1)}
+  20% {filter:brightness(1.06)saturate(1.08)}
+  45% {filter:brightness(1.02)saturate(1.03)}
+  65% {filter:brightness(1.07)saturate(1.1)}
+  85% {filter:brightness(1.01)saturate(1.01)}
+  100%{filter:brightness(1)   saturate(1)}
+}
+@keyframes annaLipSyncImg{
+  0%  {transform:scale(1)     translateY(0);   filter:brightness(1)}
+  30% {transform:scale(1.008) translateY(-3px);filter:brightness(1.05)}
+  60% {transform:scale(1.005) translateY(-2px);filter:brightness(1.03)}
+  100%{transform:scale(1)     translateY(0);   filter:brightness(1)}
 }
 .anna-talking .idle-breathe{
-  animation:annaLipSync 0.32s ease-in-out infinite!important;
+  animation:annaLipSyncImg 0.9s ease-in-out infinite!important;
 }
 .anna-talking .idle-video{
-  animation:annaLipSync 0.32s ease-in-out infinite;
-  transform-origin:center bottom;
+  animation:annaLipSync 0.75s ease-in-out infinite;
 }
 .anna-talking .avatar-frame,
 .anna-talking .avatar-video-wrap{
