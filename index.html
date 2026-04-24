@@ -5883,11 +5883,41 @@ function App(){
     const _hasQuestionWord = /\bwhat\b|\bwhich\b|\bany\b|\bdo you\b|\bshow\b|\bhave\b|\bcan i\b/.test(_q);
     const _isSpecificDrink = /\bbeer\b|\bwine\b|\bcocktail\b|\bbudweiser\b|\bcoke\b|\bjuice\b|\bsoda\b|\blemonade\b|\bwater\b|\btea\b|\bcoffee\b|\bshot\b|\bwhiskey\b|\bvodka\b|\brum\b|\bgin\b/.test(_q);
     const _drinkCatQ = (_hasDrinkWord && _hasQuestionWord) && !_isSpecificDrink;
+    // If choice cards are already up, match voice to a card before anything else
+    if(choiceCards.length > 0){
+      const _isAdultReq = /\b(adult|alcohol|alcoholic|wine|wines|beer|beers|cocktail|cocktails|spirit|spirits|liquor|whiskey|vodka|gin|rum|tequila|margarita)\b/.test(_q);
+      const _isRegularReq = /\b(regular|non.alcohol|soda|sodas|juice|juices|water|lemonade|coffee|tea|soft)\b/.test(_q);
+      if(_isAdultReq || _isRegularReq){
+        const alcWords = ['wine','beer','cocktail','spirit','whiskey','vodka','gin','rum','tequila','margarita','sangria','draft','ale','lager','brew','alcohol','liquor','cider','champagne','prosecco'];
+        const isAlc = (i)=>{ const h=((i.cat||'')+' '+(i.name||'')+' '+(i.desc||'')+' '+(i.ing||'')).toLowerCase(); return alcWords.some(w=>h.includes(w)); };
+        const drinkWords = ['drink','beverage','juice','soda','water','tea','coffee','lemonade','smoothie','shake','milkshake','sprite','coke','pepsi','cola','fanta','ginger','sparkling'];
+        const isDrink = (i)=>{ const h=((i.cat||'')+' '+(i.name||'')+' '+(i.desc||'')).toLowerCase(); return drinkWords.some(w=>h.includes(w))||isAlc(i); };
+        setChoiceCards([]);
+        setThinking(false);
+        if(_isAdultReq){
+          const hits = menu.filter(i=>i.visible && isAlc(i));
+          setCarouselItems(hits.length?hits:menu.filter(i=>i.visible && isDrink(i)));
+          setCarouselLabel('Wines, Beers & Spirits');
+          setAiResponse("Here are our wines, beers and spirits! 🍷");
+        } else {
+          const hits = menu.filter(i=>i.visible && isDrink(i) && !isAlc(i));
+          setCarouselItems(hits.length?hits:menu.filter(i=>i.visible && isDrink(i)));
+          setCarouselLabel('Drinks Menu');
+          setAiResponse("Here's our regular drinks menu! 🥤");
+        }
+        setSelectedItem(null);
+        setVideoUrl('');
+        setOrdered(false);
+        setScreen('response');
+        return;
+      }
+    }
+
     if(_drinkCatQ){
       setThinking(false);
       setChoiceCards([
-        {id:'drinks', label:'Drinks Menu',     icon:'🥤', desc:'Sodas, juices & more'},
-        {id:'adult',  label:'Adult Beverages', icon:'🍷', desc:'Beer, wine & cocktails'}
+        {id:'drinks', label:'Drinks Menu',           icon:'🥤', desc:'Sodas, juices & more'},
+        {id:'adult',  label:'Wines, Beers & Spirits', icon:'🍷', desc:'Adult beverages'}
       ]);
       setCarouselItems([]);
       setCarouselLabel('');
@@ -6531,8 +6561,8 @@ function App(){
       if(card.id==='adult'){
         const hits=menu.filter(i=>i.visible&&isAlc(i));
         setCarouselItems(hits.length?hits:menu.filter(i=>i.visible&&isDrink(i)));
-        setCarouselLabel('Adult Beverages');
-        setAiResponse("Here are our adult beverages! 🍷 Cheers!");
+        setCarouselLabel('Wines, Beers & Spirits');
+        setAiResponse("Here are our wines, beers and spirits! 🍷 Cheers!");
       } else {
         const hits=menu.filter(i=>i.visible&&isDrink(i)&&!isAlc(i));
         setCarouselItems(hits.length?hits:menu.filter(i=>i.visible&&isDrink(i)));
