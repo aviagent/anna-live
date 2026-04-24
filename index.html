@@ -5807,11 +5807,15 @@ function App(){
       ]);
       setCarouselItems([]);
       setCarouselLabel('');
-      setAiResponse("Are you looking for the regular drinks menu or our adult beverage menu?");
+      const _drinkMsg = "Are you looking for the regular drinks menu or our adult beverage menu?";
+      setAiResponse(_drinkMsg);
       setSelectedItem(null);
       setVideoUrl('');
       setOrdered(false);
       setScreen('response');
+      // Speak directly — bypass readAloud check since this was voice-triggered
+      const _drinkLang = (loadSettings().language)||'en-US';
+      setTimeout(()=>speakText(_drinkMsg, _drinkLang, null), 400);
       return;
     }
 
