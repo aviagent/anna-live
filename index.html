@@ -2496,12 +2496,11 @@ function AvatarDisplay({videoUrl,posterUrl,height='62vh',active=false,loop=false
     const _r2Base = store.get('anna_r2_base','https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev').replace(/\/$/,'');
     const idleVideoSrc = store.get('anna_idle_video_url', _r2Base+'/anna-idle-3.mp4');
     return h('div',{className:'avatar-frame',style:{height,position:'relative',boxShadow:active?'0 0 40px rgba(201,168,76,.5),var(--shadow-glow)':'var(--shadow-glow)'}},
-      idleVideoSrc
-        ? h('video',{src:idleVideoSrc,loop:true,muted:true,autoPlay:true,playsInline:true,preload:'auto',className:'idle-video',style:{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',display:'block'}})
-        : imgSrc
-          ? h('img',{src:imgSrc,alt:'Anna',className:'idle-breathe',style:{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',display:'block'}})
-          : h('div',{style:{width:'100%',height:'100%',background:'linear-gradient(180deg,var(--green),var(--green2))',display:'flex',alignItems:'center',justifyContent:'center'}},
-              h('div',{style:{color:'var(--gold2)',fontSize:48,opacity:.4}},'✦')),
+      // Always render image first as base layer (ensures something visible on iOS if video fails)
+      imgSrc && h('img',{src:imgSrc,alt:'Anna',className:'idle-breathe',style:{position:'absolute',top:0,left:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',display:'block',zIndex:1}}),
+      idleVideoSrc && h('video',{src:idleVideoSrc,loop:true,muted:true,autoPlay:true,playsInline:true,preload:'auto',poster:imgSrc||undefined,className:'idle-video',onError:(e)=>{try{e.currentTarget.style.display='none';}catch(err){}},style:{position:'absolute',top:0,left:0,width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',display:'block',zIndex:2}}),
+      !imgSrc && !idleVideoSrc && h('div',{style:{width:'100%',height:'100%',background:'linear-gradient(180deg,var(--green),var(--green2))',display:'flex',alignItems:'center',justifyContent:'center'}},
+          h('div',{style:{color:'var(--gold2)',fontSize:48,opacity:.4}},'✦')),
       active&&sparks.map(([l,d],i)=>h('div',{key:i,className:'sp',style:{left:`${l}%`,bottom:`${10+i*7}%`,width:4,height:4,animationDelay:`${d}s`}})),
       h('div',{className:'sparkle-overlay'}),avVidOverlay,nameTag
     );
@@ -3149,6 +3148,19 @@ function TextChatModal({menu,messages=[],faq=[],onClose,onNavigate,tableNum,onOr
     setLoading(true);
     console.log('[TextChat] Question:',txt,'| Table mode:',tableNum||'none');
     try{
+      // -- Priority -2: Drink category chooser (matches voice flow) --
+      const _txtQ = txt.toLowerCase().trim();
+      const _txtHasDrinkWord = /\bdrinks?\b|\bbeverages?\b/.test(_txtQ);
+      const _txtHasQ = /\bwhat\b|\bwhich\b|\bany\b|\bdo you\b|\bshow\b|\bhave\b|\bcan i\b/.test(_txtQ);
+      const _txtSpecific = /\bbeer\b|\bwine\b|\bcocktail\b|\bbudweiser\b|\bcoke\b|\bjuice\b|\bsoda\b|\blemonade\b|\bwater\b|\btea\b|\bcoffee\b|\bshot\b|\bwhiskey\b|\bvodka\b|\brum\b|\bgin\b/.test(_txtQ);
+      if(_txtHasDrinkWord && _txtHasQ && !_txtSpecific){
+        setLoading(false);
+        const drinkReply = "Are you looking for the regular drinks menu or our adult beverage menu?";
+        setMsgs(p=>[...p,{role:'assistant',content:drinkReply,drinkChooser:true,msgId:Date.now()}]);
+        speakReply && speakReply(drinkReply);
+        return;
+      }
+
       // -- Priority 0: Menu item trigger keywords --
       // First scan ALL menu items (works from home screen, menu page, anywhere).
       // Then also check activeItem/selectedItem for context-specific triggers.
