@@ -280,6 +280,32 @@ video::-webkit-media-controls-start-playback-button{display:none!important}
   animation:idleBreathe 4s ease-in-out infinite;
   transform-origin:center bottom;
 }
+/* ─── TALKING / LIP-SYNC STATE ─── */
+@keyframes annaLipSync{
+  0%  {transform:scale(1)    translateY(0);   filter:brightness(1)}
+  12% {transform:scale(1.022)translateY(-5px);filter:brightness(1.07)}
+  25% {transform:scale(1.009)translateY(-2px);filter:brightness(1.02)}
+  40% {transform:scale(1.025)translateY(-6px);filter:brightness(1.08)}
+  55% {transform:scale(1.007)translateY(-1px);filter:brightness(1.01)}
+  70% {transform:scale(1.019)translateY(-4px);filter:brightness(1.05)}
+  85% {transform:scale(1.005)translateY(-1px)}
+  100%{transform:scale(1)    translateY(0);   filter:brightness(1)}
+}
+.anna-talking .idle-breathe{
+  animation:annaLipSync 0.32s ease-in-out infinite!important;
+}
+.anna-talking .idle-video{
+  animation:annaLipSync 0.32s ease-in-out infinite;
+  transform-origin:center bottom;
+}
+.anna-talking .avatar-frame,
+.anna-talking .avatar-video-wrap{
+  box-shadow:0 0 55px rgba(201,168,76,.65),var(--shadow-glow)!important;
+}
+.idle-video{
+  width:100%;height:100%;object-fit:cover;object-position:top center;display:block;
+  transform-origin:center bottom;
+}
 /* ─── CART DRAWER ─── */
 @keyframes slideInRight{from{transform:translateX(100%)}to{transform:translateX(0)}}
 .cart-drawer{
@@ -430,6 +456,7 @@ function loadSettings(){
       heygenAvatarId:'',
       language:'en-US',
       readAloud:false,
+      continuousListen:true,
     }),
     cartesiaKey: store.get('anna_cartesia_key',''),
     voiceId:     store.get('anna_voice_id','d8955cfc-7f79-4d3f-a460-87c56ba0c76b'),
@@ -1008,22 +1035,32 @@ function resolveVideoUrl(item) {
 function detectOrderIntent(question) {
   const q = question.toLowerCase();
 
-  // Action verb families -- any single word signals possible order
-  const actionVerbs = ['order','add','get','have','want','like','bring','send','put','throw','grab','take','give','serve'];
-  // Context signals -- table/order context words
-  const contextWords = ['table','order','my order','cart','please','now','tonight','us','me','in','this','that'];
-  // Intensifiers that alone suggest ordering with a pronoun
-  const pronounOrder = ['another','more','one more','same again','again','second','third','extra'];
+  // Explicit yes-to-confirm phrases — treat as order intent
+  const yesConfirm = ['yes please','yes add','yeah add','yep add','go ahead','sounds good','add it','sure add','absolutely','yes i want','yeah i want'];
+  if (yesConfirm.some(p => q.includes(p))) return true;
+
+  // Strong ordering patterns — no ambiguity needed
+  const strongPatterns = [
+    /i('d| would) like/,/can i (get|have|order)/,/could i (get|have|order)/,
+    /i'll (have|take|get|order)/,/let me (get|have|order)/,/give me/,/bring me/,
+    /i want to order/,/i want (a|an|the|some)/,/add .* (to my|to the) (order|cart)/,
+    /put .* in (my|the) (order|cart)/,/throw .* in/,/one .* please/,
+  ];
+  if (strongPatterns.some(r => r.test(q))) return true;
+
+  // Action verb families
+  const actionVerbs = ['order','add','get','have','want','like','bring','send','put','throw','grab','take','give','serve','try'];
+  // Context signals
+  const contextWords = ['table','order','my order','cart','please','now','tonight','us','me','in','this','that','the'];
+  // Repeat/extra phrases
+  const pronounOrder = ['another','more','one more','same again','again','second','third','extra','refill'];
 
   const hasAction = actionVerbs.some(w => q.split(/\b/).includes(w));
   const hasContext = contextWords.some(w => q.includes(w));
   const hasPronoun = pronounOrder.some(w => q.includes(w));
 
-  // "throw in the X", "can I get X", "I'd like X at my table" etc -- action + context
   if (hasAction && hasContext) return true;
-  // "another X please", "one more X" etc -- pronoun alone is enough
   if (hasPronoun) return true;
-  // Direct imperative: starts with action verb
   if (actionVerbs.some(w => q.trimStart().startsWith(w))) return true;
 
   return false;
@@ -2080,6 +2117,7 @@ async function _cartesiaTTS(text) {
 // ── AUDIO QUEUE — seamless playback ──────────────────
 let _audioQueue = [];
 let _isPlayingAudio = false;
+let _ttsOnComplete = null; // fires once when queue fully drains
 
 function _enqueueAudio(blob) {
   _audioQueue.push(blob);
@@ -2089,6 +2127,8 @@ function _enqueueAudio(blob) {
 function _playNextAudio() {
   if (_audioQueue.length === 0) {
     _isPlayingAudio = false;
+    document.body.classList.remove('anna-talking');
+    if (_ttsOnComplete) { const cb = _ttsOnComplete; _ttsOnComplete = null; setTimeout(cb, 500); }
     return;
   }
   _isPlayingAudio = true;
@@ -2101,25 +2141,26 @@ function _playNextAudio() {
   audio.play().catch(() => _playNextAudio());
 }
 
-function speakText(text, langCode) {
+function speakText(text, langCode, onComplete) {
   if (!text) return;
+  document.body.classList.add('anna-talking');
+  if (onComplete) _ttsOnComplete = onComplete;
   const cartesiaKey = store.get('anna_cartesia_key', '');
   if (cartesiaKey) {
-    // Use Cartesia TTS — queue audio blobs for seamless playback
     _cartesiaTTS(text).then(blob => {
       _enqueueAudio(blob);
     }).catch(e => {
       console.warn('[Cartesia TTS] Error:', e.message, '— falling back to browser TTS');
-      _browserSpeakText(text, langCode);
+      _browserSpeakText(text, langCode, onComplete);
     });
   } else {
-    _browserSpeakText(text, langCode);
+    _browserSpeakText(text, langCode, onComplete);
   }
 }
 
-function _browserSpeakText(text, langCode) {
+function _browserSpeakText(text, langCode, onComplete) {
   if (!langCode) langCode = 'en-US';
-  if (!window.speechSynthesis) { console.warn("[TTS] speechSynthesis not supported"); return; }
+  if (!window.speechSynthesis) { console.warn("[TTS] speechSynthesis not supported"); if(onComplete) setTimeout(onComplete,500); return; }
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(text);
   utt.lang = langCode;
@@ -2132,11 +2173,11 @@ function _browserSpeakText(text, langCode) {
     || null;
   if (match) utt.voice = match;
   _ttsUtterance = utt;
-  utt.onstart  = () => console.log("[TTS] Speaking in", langCode, ":", text.substring(0,60)+"...");
-  utt.onerror  = e  => console.warn("[TTS] Error:", e.error);
-  utt.onend    = () => console.log("[TTS] Done");
+  utt.onstart  = () => { console.log("[TTS] Speaking in", langCode, ":", text.substring(0,60)+"..."); document.body.classList.add('anna-talking'); };
+  utt.onerror  = e  => { console.warn("[TTS] Error:", e.error); document.body.classList.remove('anna-talking'); if(onComplete) setTimeout(onComplete,500); };
+  utt.onend    = () => { console.log("[TTS] Done"); document.body.classList.remove('anna-talking'); if(onComplete) setTimeout(onComplete,500); };
   try { window.speechSynthesis.speak(utt); }
-  catch(e) { console.warn("[TTS] speak() failed:", e.message); }
+  catch(e) { console.warn("[TTS] speak() failed:", e.message); if(onComplete) setTimeout(onComplete,500); }
 }
 function stopTTS(){ try{ window.speechSynthesis.cancel(); }catch(e){} }
 
@@ -2150,38 +2191,71 @@ const _MANIFEST_TTL = 5 * 60 * 1000; // re-fetch every 5 min
 
 // Intent keyword map — maps phrases to manifest keys
 const INTENT_MAP = [
-  { keys:['welcome','hello','hi ','hey '],               intent:'welcome' },
-  { keys:['goodbye','bye','farewell','see you'],          intent:'goodbye' },
-  { keys:['show.*menu','see.*menu','menu please'],        intent:'show-menu' },
-  { keys:['drink','beverage','cocktail','juice','water'], intent:'show-drinks' },
-  { keys:['checkout','check out','pay','ready to pay'],   intent:'checkout' },
-  { keys:['promo','deal','discount','offer'],             intent:'promo' },
+  // ── Greetings / farewells ──
+  { keys:['welcome','hello','hi ','hey ','good morning','good evening','good afternoon'], intent:'welcome' },
+  { keys:['goodbye','bye','farewell','see you','take care','have a good'],                intent:'goodbye' },
+  { keys:['thank you','thanks','thank','appreciate','cheers'],                            intent:'thanks' },
+
+  // ── Menu browsing ──
+  { keys:['show.*menu','see.*menu','menu please','what.*on.*menu','full menu','what do you have','everything you have'], intent:'show-menu' },
+  { keys:['drink','beverage','cocktail','juice','water','something to drink','what.*drink'], intent:'show-drinks' },
+  { keys:['dessert','sweet','something sweet','after dinner','pudding'],                  intent:'show-desserts' },
+  { keys:['starter','appetizer','appetiser','to share','snack','small plate'],            intent:'show-starters' },
+  { keys:['special','today.*special','feature','what.*special','daily special'],          intent:'show-specials' },
+
+  // ── Ordering flow ──
+  { keys:['add.*cart','add to my order','put.*in my order','throw.*in','i.*want to order','i want to add','can.*i.*order','can.*i.*get','i.*would like','i.*d like','could i get','could i have'], intent:'add-cart' },
+  { keys:['view.*cart','check.*cart','what.*in my cart','what.*in my order','my order','what.*i.*ordered','show.*cart','review.*order'], intent:'view-cart' },
+  { keys:['checkout','check out','pay','ready to pay','place.*order','i.*m done','finish.*order','that.*s.*all','pay now','process.*order'], intent:'checkout' },
+  { keys:['order.*placed','order.*confirmed','order.*sent','order.*received','thank.*order','my order.*in'], intent:'order-placed' },
+  { keys:['yes please','yeah','yep','yup','sure','absolutely','go ahead','sounds good','that.*s.*perfect','perfect yes','add it','yes add'], intent:'order-yes' },
+  { keys:['no thank','not.*now','never mind','cancel','actually no','forget it','never mind','skip it'],                                    intent:'order-no' },
+  { keys:['recommend','suggest','what.*good','what.*best','popular','favourite','what.*should i','what do you recommend','what.*would you'], intent:'recommend' },
+  { keys:['busy','wait.*time','how long','table.*ready','seat'],                          intent:'busy' },
+
+  // ── Promos / allergies ──
+  { keys:['promo','deal','discount','offer','happy hour','coupon'],                       intent:'promo' },
+  { keys:['allerg','gluten','vegan','vegetarian','dairy','nut','halal','kosher'],         intent:'allergy-info' },
+
+  // ── Menu items — Starters ──
   { keys:['potato skin','loaded skin'],                   intent:'loaded-potato-skins' },
-  { keys:['chicken wing','buffalo wing','classic wing'],  intent:'classic-chicken-wings' },
+  { keys:['chicken wing','buffalo wing','classic wing','hot wing'], intent:'classic-chicken-wings' },
   { keys:['boneless wing'],                               intent:'boneless-wings' },
   { keys:['beef slider'],                                 intent:'beef-sliders' },
   { keys:['pulled pork slider','pork slider'],            intent:'pulled-pork-sliders' },
+
+  // ── Menu items — Mains ──
   { keys:['classic burger','regular burger'],             intent:'classic-burger' },
   { keys:['bbq bacon','bacon burger','bbq burger'],       intent:'bbq-bacon-burger' },
   { keys:['chicken caesar','caesar salad','caesar'],      intent:'chicken-caesar' },
-  { keys:['crispy chicken sandwich','chicken sandwich'],  intent:'crispy-chicken-sandwich' },
-  { keys:['buttermilk chicken','chicken finger','tender'],intent:'buttermilk-chicken-fingers' },
+  { keys:['crispy chicken sandwich','chicken sandwich','crispy chicken'], intent:'crispy-chicken-sandwich' },
+  { keys:['buttermilk chicken','chicken finger','chicken tender','tender'], intent:'buttermilk-chicken-fingers' },
   { keys:['grilled chicken club','chicken club'],         intent:'grilled-chicken-club' },
-  { keys:['steak frites','steak frit','steak and fries'], intent:'steak-frites' },
+  { keys:['steak frites','steak frit','steak and fries','steak'], intent:'steak-frites' },
+
+  // ── Menu items — Sides ──
   { keys:['french fries','fries','fry'],                  intent:'french-fries' },
-  { keys:['sweet potato fries','sweet potato'],           intent:'sweet-potato-fries' },
+  { keys:['sweet potato fries','sweet potato fry','sweet potato'], intent:'sweet-potato-fries' },
   { keys:['onion ring'],                                  intent:'onion-rings' },
-  { keys:['cheesecake','ny cheesecake'],                  intent:'ny-cheesecake' },
+
+  // ── Menu items — Desserts ──
+  { keys:['cheesecake','ny cheesecake','new york cheesecake'], intent:'ny-cheesecake' },
   { keys:['lava cake','chocolate lava','chocolate cake'], intent:'chocolate-lava-cake' },
   { keys:['apple crumble','crumble'],                     intent:'apple-crumble' },
-  { keys:['stella artois','stella'],                      intent:'stella-artois' },
-  { keys:['budweiser','bud '],                            intent:'budweiser' },
+
+  // ── Menu items — Beer ──
+  { keys:['stella artois','a stella'],                    intent:'stella-artois' },
+  { keys:['budweiser','bud light','a bud'],               intent:'budweiser' },
   { keys:['heineken'],                                    intent:'heineken' },
   { keys:['corona'],                                      intent:'corona-extra' },
+
+  // ── Menu items — Cocktails ──
   { keys:['old fashioned'],                               intent:'old-fashioned' },
   { keys:['margarita'],                                   intent:'margarita' },
-  { keys:['coca.cola','coke(?! zero| light)'],            intent:'coca-cola' },
-  { keys:['diet coke','diet cola'],                       intent:'diet-coke' },
+
+  // ── Menu items — Soft drinks ──
+  { keys:['coca.cola','coke(?! zero| light)','a coke'],   intent:'coca-cola' },
+  { keys:['diet coke','diet cola','coke zero'],           intent:'diet-coke' },
   { keys:['iced tea','ice tea'],                          intent:'iced-tea' },
   { keys:['green tea','hot tea'],                         intent:'hot-green-tea' },
   { keys:['orange juice','oj'],                           intent:'orange-juice' },
@@ -2373,14 +2447,18 @@ function AvatarDisplay({videoUrl,posterUrl,height='62vh',active=false,loop=false
     style:{position:'absolute',inset:0,width:'100%',height:'100%',objectFit:'cover',display:'none',zIndex:10}
   });
 
-  // -- No video: show idle static image --
+  // -- No video: show idle loop video or static image --
   if(!playUrl){
     const imgSrc = staticImgSrc || posterUrl || '';
+    const _r2Base = store.get('anna_r2_base','https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev').replace(/\/$/,'');
+    const idleVideoSrc = store.get('anna_idle_video_url', _r2Base+'/anna-idle-3.mp4');
     return h('div',{className:'avatar-frame',style:{height,position:'relative',boxShadow:active?'0 0 40px rgba(201,168,76,.5),var(--shadow-glow)':'var(--shadow-glow)'}},
-      imgSrc
-        ? h('img',{src:imgSrc,alt:'Anna',className:'idle-breathe',style:{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',display:'block'}})
-        : h('div',{style:{width:'100%',height:'100%',background:'linear-gradient(180deg,var(--green),var(--green2))',display:'flex',alignItems:'center',justifyContent:'center'}},
-            h('div',{style:{color:'var(--gold2)',fontSize:48,opacity:.4}},'✦')),
+      idleVideoSrc
+        ? h('video',{src:idleVideoSrc,loop:true,muted:true,autoPlay:true,playsInline:true,preload:'auto',className:'idle-video',style:{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',display:'block'}})
+        : imgSrc
+          ? h('img',{src:imgSrc,alt:'Anna',className:'idle-breathe',style:{width:'100%',height:'100%',objectFit:'cover',objectPosition:'top center',display:'block'}})
+          : h('div',{style:{width:'100%',height:'100%',background:'linear-gradient(180deg,var(--green),var(--green2))',display:'flex',alignItems:'center',justifyContent:'center'}},
+              h('div',{style:{color:'var(--gold2)',fontSize:48,opacity:.4}},'✦')),
       active&&sparks.map(([l,d],i)=>h('div',{key:i,className:'sp',style:{left:`${l}%`,bottom:`${10+i*7}%`,width:4,height:4,animationDelay:`${d}s`}})),
       h('div',{className:'sparkle-overlay'}),avVidOverlay,nameTag
     );
@@ -2407,6 +2485,7 @@ function AvatarDisplay({videoUrl,posterUrl,height='62vh',active=false,loop=false
     h('video',{
       ref:videoRef,
       src:playUrl,
+      preload:'none',
       autoPlay:true,playsInline:true,muted:true,loop:effectiveLoop,
       'webkit-playsinline':'','x-webkit-airplay':'deny',
       disablePictureInPicture:true,disableRemotePlayback:true,
@@ -2641,13 +2720,13 @@ function HomeScreen({menu,messages,onSpeak,onItemSelect,onCardAsk,tableNum,homeT
       h('div',{className:'section-head-line'})
     ),
     h('div',{className:'hscroll'},
-      menu.filter(i=>i.visible).slice(0,6).map(item=>h('div',{
+      menu.filter(i=>i.visible).slice(0,6).map((item,idx)=>h('div',{
         key:item.id,className:'feat-card',
         style:{position:'relative',...cardTapStyle},
         onClick:()=>handleCardTap(item),
         role:'button','aria-label':'Ask about '+item.name
       },
-        h('img',{src:item.imgUrl,alt:item.name,loading:'lazy'}),
+        h('img',{src:item.imgUrl,alt:item.name,loading:idx<4?'eager':'lazy',fetchpriority:idx<2?'high':'auto'}),
         h('div',{className:'feat-label'},
           h('div',{className:'feat-label-title'},item.name),
           h('div',{className:'feat-label-sub',style:{color:'var(--gold3)',fontWeight:700}},'$'+item.price)
@@ -2662,13 +2741,13 @@ function HomeScreen({menu,messages,onSpeak,onItemSelect,onCardAsk,tableNum,homeT
       h('div',{className:'section-head-line'})
     ),
     h('div',{className:'hscroll'},
-      menu.filter(i=>i.visible&&(picksCategory==='All'||i.cat===picksCategory)).map(item=>h('div',{
+      menu.filter(i=>i.visible&&(picksCategory==='All'||i.cat===picksCategory)).slice(0,8).map((item,idx)=>h('div',{
         key:item.id,className:'feat-card',
         style:{position:'relative',...cardTapStyle},
         onClick:()=>handleCardTap(item),
         role:'button','aria-label':'Ask about '+item.name
       },
-        h('img',{src:item.imgUrl,alt:item.name,loading:'lazy'}),
+        h('img',{src:item.imgUrl,alt:item.name,loading:idx<4?'eager':'lazy'}),
         h('div',{className:'feat-label'},
           h('div',{className:'feat-label-title'},item.name),
           h('div',{className:'feat-label-sub',style:{color:'var(--gold3)',fontWeight:700}},'$'+item.price)
@@ -2711,11 +2790,12 @@ function ListeningScreen({transcript,onStop,thinking=false,staticImgSrc=''}){
 }
 
 // RESPONSE SCREEN
-function ResponseScreen({item,response,videoUrl,welcomeVideoUrl,welcomeImgSrc,onTalk,onText,onOrder,tableNum,ordered,setOrdered,avatarMode,heygenFallback,setHeygenFallback,carouselItems,carouselLabel,onCarouselAdd}){
+function ResponseScreen({item,response,videoUrl,welcomeVideoUrl,welcomeImgSrc,onTalk,onText,onOrder,tableNum,ordered,setOrdered,avatarMode,heygenFallback,setHeygenFallback,carouselItems,carouselLabel,onCarouselAdd,choiceCards,onChoiceSelect}){
   const useHeygen = avatarMode === 'heygen' && !heygenFallback;
   const hasItem = !!item;
   const hasVideo = !!videoUrl;
   const hasCarousel = !!(carouselItems && carouselItems.length > 0);
+  const hasChoiceCards = !!(choiceCards && choiceCards.length > 0);
   const fallback = ordered ? '' : ((hasItem||hasVideo) ? (welcomeVideoUrl||'') : '');
   const idleImg = ordered ? (item?._confirmImg || item?.imgUrl || welcomeImgSrc || '') : (item?.imgUrl || welcomeImgSrc || '');
 
@@ -2724,18 +2804,45 @@ function ResponseScreen({item,response,videoUrl,welcomeVideoUrl,welcomeImgSrc,on
       ? h(HeyGenPlayer,{text:response,onFallback:()=>{setHeygenFallback(true);}})
       : h('div',{style:{position:'relative'}},
           h(AvatarDisplay,{
-            videoUrl: hasCarousel ? (welcomeVideoUrl||'') : (videoUrl||''),
+            videoUrl: (hasCarousel||hasChoiceCards) ? (welcomeVideoUrl||'') : (videoUrl||''),
             posterUrl:idleImg,
-            fallbackVideoUrl: hasCarousel ? '' : fallback,
+            fallbackVideoUrl: (hasCarousel||hasChoiceCards) ? '' : fallback,
             staticImgSrc:idleImg,
             height:'62vh',
-            active: hasCarousel ? false : (hasItem && hasVideo),
-            loop: hasCarousel,
+            active: (hasCarousel||hasChoiceCards) ? false : (hasItem && hasVideo),
+            loop: hasCarousel||hasChoiceCards,
             idleAfter:ordered,
             onEnded: ordered ? ()=>{ console.log('[Order] Confirm video ended'); } : null,
           }),
           // -- Name tag (hidden when carousel is showing) --
           !hasCarousel&&h('div',{style:{position:'absolute',bottom:20,left:16,zIndex:2,pointerEvents:'none',background:'linear-gradient(135deg,var(--gold),var(--gold2))',color:'#1a1a0a',borderRadius:6,padding:'4px 10px',fontFamily:"'Playfair Display',serif",fontSize:11,fontWeight:700,boxShadow:'0 2px 8px rgba(0,0,0,.3)'}}),
+          // ── CHOICE CARDS OVERLAY (drink chooser, etc.) ──
+          hasChoiceCards&&h('div',{style:{position:'absolute',bottom:0,left:0,right:0,zIndex:20,background:'linear-gradient(to top, rgba(10,22,14,0.98) 0%, rgba(10,22,14,0.85) 60%, transparent 100%)',paddingTop:56,paddingBottom:18}},
+            h('div',{style:{padding:'0 14px 10px',fontFamily:"'Playfair Display',serif",fontSize:13,color:'var(--gold2)',fontWeight:700,letterSpacing:'0.3px',textAlign:'center'}},'Choose one'),
+            h('div',{style:{display:'flex',gap:12,padding:'0 14px',justifyContent:'center'}},
+              choiceCards.map((card)=>h('button',{
+                key:card.id,
+                onClick:()=>onChoiceSelect&&onChoiceSelect(card),
+                style:{
+                  flex:1,maxWidth:160,
+                  background:'linear-gradient(145deg,rgba(30,50,35,0.95),rgba(20,35,25,0.98))',
+                  border:'1.5px solid rgba(201,168,76,0.75)',
+                  borderRadius:16,
+                  padding:'18px 12px 16px',
+                  cursor:'pointer',
+                  display:'flex',flexDirection:'column',alignItems:'center',gap:8,
+                  boxShadow:'0 8px 32px rgba(0,0,0,0.6)',
+                  transition:'transform 0.15s,box-shadow 0.15s',
+                  WebkitTapHighlightColor:'transparent',
+                  fontFamily:'inherit',
+                }
+              },
+                h('span',{style:{fontSize:38,lineHeight:1}},card.icon),
+                h('span',{style:{fontFamily:"'Playfair Display',serif",fontSize:14,fontWeight:700,color:'var(--gold2)',lineHeight:1.2,textAlign:'center'}},card.label),
+                h('span',{style:{fontSize:11,color:'rgba(255,255,255,0.5)',textAlign:'center',lineHeight:1.3}},card.desc)
+              ))
+            )
+          ),
           // ── CAROUSEL OVERLAY ──
           hasCarousel&&h('div',{style:{position:'absolute',bottom:0,left:0,right:0,zIndex:20,background:'linear-gradient(to top, rgba(10,22,14,0.97) 0%, rgba(10,22,14,0.82) 55%, transparent 100%)',paddingTop:48,paddingBottom:12}},
             h('div',{style:{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'0 14px 8px'}},
@@ -4544,6 +4651,18 @@ function AdminSettingsPanel({showToast}){
       h('div',{style:{marginBottom:14}},
         h('label',{className:'label'},'Alternative CDN URL ',h('span',{style:{fontWeight:400,color:'var(--text3)'}},'(optional)')),
         h('input',{value:altUrl,onChange:e=>setAltUrl(e.target.value),placeholder:'https://your-cdn.example.com/videos/',className:'field'})
+      ),
+      h('div',{style:{marginBottom:6}},
+        h('label',{className:'label'},'🎬 Idle Loop Video URL ',h('span',{style:{fontWeight:400,color:'var(--text3)'}},'(Anna breathing — replaces static image)')),
+        h('input',{
+          value:store.get('anna_idle_video_url',''),
+          onChange:e=>store.set('anna_idle_video_url',e.target.value.trim()),
+          placeholder:'https://your-cdn.com/anna-idle.mp4',
+          className:'field'
+        }),
+        h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:4,lineHeight:1.5}},
+          'Upload a short looping mp4 of Anna breathing/idle. When she speaks, a lip-sync animation activates automatically. Leave blank to use the static image.'
+        )
       )
     ),
 
@@ -4659,6 +4778,18 @@ function AdminSettingsPanel({showToast}){
           ' -- supported in Chrome, Safari, Edge. Falls back to text only if unavailable.'
         ),
         // Test button
+        // Continuous Listen toggle (only relevant when Read Aloud is on)
+        cfg.readAloud && h('div',{style:{marginTop:10,paddingTop:10,borderTop:'1px solid rgba(42,90,64,.12)',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('div',null,
+            h('div',{style:{fontSize:12,fontWeight:700,color:'var(--green2)'}},'🎤 Continuous Listen'),
+            h('div',{style:{fontSize:11,color:'var(--text3)',marginTop:2,lineHeight:1.4}},'Auto-restart mic after each reply — keeps the order flowing hands-free.')
+          ),
+          h('label',{className:'tgl',style:{flexShrink:0,marginLeft:12}},
+            h('input',{type:'checkbox',checked:cfg.continuousListen!==false,onChange:e=>p('continuousListen')(e.target.checked)}),
+            h('span',{className:'tgl-slider'})
+          )
+        ),
+
         h('button',{
           onClick:()=>{
             const lang = LANGUAGES.find(l=>l.code===(cfg.language||'en-US'))||LANGUAGES[0];
@@ -5359,12 +5490,29 @@ function App(){
   const[takeoutConfirmed,setTakeoutConfirmed]=useState(null);
   const[carouselItems,setCarouselItems]=useState([]);
   const[carouselLabel,setCarouselLabel]=useState('');
+  const[choiceCards,setChoiceCards]=useState([]);
   const recRef=useRef();
 
   // Load data: Supabase first, IndexedDB fallback -- runs on every mount
   useEffect(()=>{
-    loadMenuData().then(v=>{ if(v&&v.length) setMenu(v); });
-    loadMessagesData().then(v=>{ if(v&&v.length) setMessages(v); });
+    // Preload welcome image immediately on messages load
+    loadMessagesData().then(v=>{
+      if(v&&v.length){
+        setMessages(v);
+        const welcome=v.find(m=>m.type==='welcome'&&m.active);
+        if(welcome?.imgUrl){ const i=new Image(); i.src=welcome.imgUrl; }
+      }
+    });
+    // Preload first 8 menu images staggered — welcome image gets head start above
+    loadMenuData().then(v=>{
+      if(v&&v.length){
+        setMenu(v);
+        const visible=v.filter(i=>i.visible!==false&&i.imgUrl);
+        visible.slice(0,8).forEach((item,idx)=>{
+          setTimeout(()=>{ const img=new Image(); img.src=item.imgUrl; }, idx*50);
+        });
+      }
+    });
     loadFAQData().then(v=>{ if(v&&v.length) setFaq(v); });
   },[]);
 
@@ -5376,10 +5524,11 @@ function App(){
     const settings = loadSettings();
     if(!settings.readAloud) return;
     const langObj = LANGUAGES.find(l=>l.code===(settings.language||'en-US'))||LANGUAGES[0];
+    const doAutoListen = settings.continuousListen !== false && !showAdmin;
     // Small delay so video audio doesn't fight speech
     const tid = setTimeout(()=>{
-      speakText(aiResponse, langObj.tts);
-      console.log('[TTS] Auto-read response in', langObj.label);
+      speakText(aiResponse, langObj.tts, doAutoListen ? ()=>{ startListening(); } : null);
+      console.log('[TTS] Auto-read response in', langObj.label, doAutoListen ? '| auto-listen ON' : '');
     }, 600);
     return ()=>clearTimeout(tid);
   },[aiResponse]);
@@ -5644,8 +5793,29 @@ function App(){
     console.log('[Voice] Processing:', text, '| Table mode:', tableNum||'none');
     setThinking(true);
     try{
-    // -- Priority -1: Hardwired phrases → instant carousel (no AI call) --
+    // -- Priority -2: Drink category chooser (shows 2 tappable cards before carousel) --
     const _q = text.toLowerCase().trim();
+    const _drinkCatQ = /what (kind|type|kinds|types)s? of (drinks?|beverages?)/.test(_q)
+      || /what (drinks?|beverages?) do you (have|serve|offer)/.test(_q)
+      || /do you (have|serve) (any )?(drinks?|beverages?)/.test(_q)
+      || /what (do you have|can i (get|have|order)).*drink/.test(_q);
+    if(_drinkCatQ){
+      setThinking(false);
+      setChoiceCards([
+        {id:'drinks', label:'Drinks Menu',     icon:'🥤', desc:'Sodas, juices & more'},
+        {id:'adult',  label:'Adult Beverages', icon:'🍷', desc:'Beer, wine & cocktails'}
+      ]);
+      setCarouselItems([]);
+      setCarouselLabel('');
+      setAiResponse("Are you looking for the regular drinks menu or our adult beverage menu?");
+      setSelectedItem(null);
+      setVideoUrl('');
+      setOrdered(false);
+      setScreen('response');
+      return;
+    }
+
+    // -- Priority -1: Hardwired phrases → instant carousel (no AI call) --
     const _HARDWIRED = [
       // All menu variants
       {phrase:'show me the menu',    all:true},
@@ -6265,7 +6435,24 @@ function App(){
     
     !showAdmin&&screen==='home'&&h(HomeScreen,{menu,messages,onSpeak:()=>{forceUnlock();startListening();},onItemSelect:handleItemSelect,onCardAsk:handleCardAsk,tableNum,homeTitles:store.get('stellas_home_titles',homeTitles)}),
     !showAdmin&&screen==='listening'&&h(ListeningScreen,{transcript,onStop:stopListen,thinking,staticImgSrc:getWelcomeImage(messages)||''}),
-    !showAdmin&&screen==='response'&&h(ResponseScreen,{item:selectedItem,response:aiResponse,videoUrl,welcomeVideoUrl:getWelcomeVideo(messages),welcomeImgSrc:getWelcomeImage(messages)||'',onTalk:()=>{forceUnlock();startListening();},onText:()=>setShowText(true),onOrder:placeOrder,tableNum,ordered,setOrdered,avatarMode:loadSettings().avatarMode,heygenFallback,setHeygenFallback,carouselItems,carouselLabel,onCarouselAdd:(it)=>{if(tableNum){placeOrder(it);}else{setTakeoutCart(c=>[...c,it]);showToast('✓ '+it.name+' added!');}} }),
+    !showAdmin&&screen==='response'&&h(ResponseScreen,{item:selectedItem,response:aiResponse,videoUrl,welcomeVideoUrl:getWelcomeVideo(messages),welcomeImgSrc:getWelcomeImage(messages)||'',onTalk:()=>{forceUnlock();startListening();},onText:()=>setShowText(true),onOrder:placeOrder,tableNum,ordered,setOrdered,avatarMode:loadSettings().avatarMode,heygenFallback,setHeygenFallback,carouselItems,carouselLabel,onCarouselAdd:(it)=>{if(tableNum){placeOrder(it);}else{setTakeoutCart(c=>[...c,it]);showToast('✓ '+it.name+' added!');}},choiceCards,onChoiceSelect:(card)=>{
+      const alcWords=['wine','beer','cocktail','spirit','whiskey','vodka','gin','rum','tequila','margarita','sangria','draft','ale','lager','brew','alcohol','liquor','cider','champagne','prosecco'];
+      const isAlc=(i)=>{const h=((i.cat||'')+' '+(i.name||'')+' '+(i.desc||'')+' '+(i.ing||'')).toLowerCase();return alcWords.some(w=>h.includes(w));};
+      const drinkWords=['drink','beverage','juice','soda','water','tea','coffee','lemonade','smoothie','shake','milkshake','sprite','coke','pepsi','cola','fanta','ginger','sparkling'];
+      const isDrink=(i)=>{const h=((i.cat||'')+' '+(i.name||'')+' '+(i.desc||'')).toLowerCase();return drinkWords.some(w=>h.includes(w))||isAlc(i);};
+      setChoiceCards([]);
+      if(card.id==='adult'){
+        const hits=menu.filter(i=>i.visible&&isAlc(i));
+        setCarouselItems(hits.length?hits:menu.filter(i=>i.visible&&isDrink(i)));
+        setCarouselLabel('Adult Beverages');
+        setAiResponse("Here are our adult beverages! 🍷 Cheers!");
+      } else {
+        const hits=menu.filter(i=>i.visible&&isDrink(i)&&!isAlc(i));
+        setCarouselItems(hits.length?hits:menu.filter(i=>i.visible&&isDrink(i)));
+        setCarouselLabel('Drinks Menu');
+        setAiResponse("Here's our drinks menu! 🥤 What looks good?");
+      }
+    }}),
     !showAdmin&&screen==='menu'&&h(MenuScreen,{menu,onItemSelect:handleItemSelect}),
     !showAdmin&&screen==='locations'&&h(LocationsScreen),
     !showAdmin&&screen==='myorder'&&h(MyOrderScreen,{key:orderVersion,
