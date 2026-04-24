@@ -471,7 +471,26 @@ const store={
 // Force correct credentials + voice settings — overrides any stale localStorage
 store.set('anna_cartesia_key','sk_car_uYjUXbPhRXncyjAW7411TZ');
 store.set('anna_voice_id','d8955cfc-7f79-4d3f-a460-87c56ba0c76b');
-(()=>{ const _s=store.get('stellas_settings',{}); store.set('stellas_settings',{..._s,readAloud:true,continuousListen:true}); })();
+(()=>{
+  const _s = store.get('stellas_settings', {}) || {};
+  store.set('stellas_settings', {
+    provider: _s.provider || 'gemma',
+    keys: {
+      groq: '',
+      gemma: 'AIzaSyBr--cUeOoVvgC4YfN7DSmnBx9oJjdPK-I',
+      xai: '', openai: '', anthropic: '',
+      ...(_s.keys || {}),
+      gemma: (_s.keys && _s.keys.gemma) || 'AIzaSyBr--cUeOoVvgC4YfN7DSmnBx9oJjdPK-I',
+    },
+    avatarMode: _s.avatarMode || 'prerecorded',
+    heygenKey: _s.heygenKey || '',
+    heygenAvatarId: _s.heygenAvatarId || '',
+    language: _s.language || 'en-US',
+    ..._s,
+    readAloud: true,
+    continuousListen: true,
+  });
+})();
 
 // ==============================================================
 // DATA LAYER -- Supabase-first, IndexedDB offline cache
