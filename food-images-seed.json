@@ -1,0 +1,302 @@
+[
+  {
+    "name_key": "loaded potato skins",
+    "name": "Loaded Potato Skins",
+    "cat": "Starters",
+    "desc": "Golden, crispy potato skins piled high with melted cheddar, smoky bacon bits, fresh green onions, and a dollop of cool sour cream. The perfect shareable starter.",
+    "price": "14",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/loaded-potato-skins.png",
+    "prompt": "professional food photography of Loaded Potato Skins",
+    "cuisine": ""
+  },
+  {
+    "name_key": "classic chicken wings",
+    "name": "Classic Chicken Wings",
+    "cat": "Starters",
+    "desc": "A full pound of our bone-in wings — crispy on the outside, juicy on the inside. Choose your favourite sauce and dig in. Served with carrots, celery, and blue cheese dip.",
+    "price": "16",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/classic-chicken-wings.png",
+    "prompt": "professional food photography of Classic Chicken Wings",
+    "cuisine": ""
+  },
+  {
+    "name_key": "boneless chicken wings",
+    "name": "Boneless Chicken Wings",
+    "cat": "Starters",
+    "desc": "All the flavour, none of the bones. Tender breaded chicken bites tossed in your choice of sauce and served with carrots, celery, and a ranch dipping sauce.",
+    "price": "15",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/boneless-chicken-wings.png",
+    "prompt": "professional food photography of Boneless Chicken Wings",
+    "cuisine": ""
+  },
+  {
+    "name_key": "beef sliders",
+    "name": "Beef Sliders",
+    "cat": "Starters",
+    "desc": "Three perfectly portioned mini burgers stacked with melted cheddar, tangy pickles, and crispy onion strings on soft brioche buns. Great for sharing — or not.",
+    "price": "15",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/beef-sliders.png",
+    "prompt": "professional food photography of Beef Sliders",
+    "cuisine": ""
+  },
+  {
+    "name_key": "pulled pork sliders",
+    "name": "Pulled Pork Sliders",
+    "cat": "Starters",
+    "desc": "Slow-cooked BBQ pulled pork piled onto three soft mini buns and topped with creamy, tangy coleslaw. Smoky, sweet, and seriously satisfying.",
+    "price": "15",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/pulled-pork-sliders.png",
+    "prompt": "professional food photography of Pulled Pork Sliders",
+    "cuisine": ""
+  },
+  {
+    "name_key": "the classic burger",
+    "name": "The Classic Burger",
+    "cat": "Mains",
+    "desc": "A timeless favourite — a juicy 6oz beef patty stacked with crisp lettuce, fresh tomato, onion, and pickles on a toasted brioche bun. Served with a side of golden fries.",
+    "price": "18",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/the-classic-burger.png",
+    "prompt": "professional food photography of The Classic Burger",
+    "cuisine": ""
+  },
+  {
+    "name_key": "bbq bacon burger",
+    "name": "BBQ Bacon Burger",
+    "cat": "Mains",
+    "desc": "Bold, smoky, and indulgent. A 6oz beef patty loaded with smoked bacon, melted cheddar, crispy onion rings, and tangy BBQ sauce on a brioche bun. Served with fries.",
+    "price": "20",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/bbq-bacon-burger.png",
+    "prompt": "professional food photography of BBQ Bacon Burger",
+    "cuisine": ""
+  },
+  {
+    "name_key": "chicken caesar salad",
+    "name": "Chicken Caesar Salad",
+    "cat": "Mains",
+    "desc": "A restaurant classic done right. Crisp romaine tossed in a rich, creamy Caesar dressing with tender grilled chicken, shaved parmesan, and house-made croutons.",
+    "price": "17",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/chicken-caesar-salad.png",
+    "prompt": "professional food photography of Chicken Caesar Salad",
+    "cuisine": ""
+  },
+  {
+    "name_key": "crispy chicken sandwich",
+    "name": "Crispy Chicken Sandwich",
+    "cat": "Mains",
+    "desc": "A thick, hand-breaded chicken breast fried to a perfect crunch, finished with zesty spicy mayo, crisp lettuce, and pickles on a brioche bun. Served with fries.",
+    "price": "19",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/crispy-chicken-sandwich.png",
+    "prompt": "professional food photography of Crispy Chicken Sandwich",
+    "cuisine": ""
+  },
+  {
+    "name_key": "buttermilk chicken fingers",
+    "name": "Buttermilk Chicken Fingers",
+    "cat": "Mains",
+    "desc": "Tender chicken tenders soaked in buttermilk and hand-breaded for a golden, satisfying crunch. Served with a sweet plum dipping sauce and a side of fries.",
+    "price": "17",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/buttermilk-chicken-fingers.png",
+    "prompt": "professional food photography of Buttermilk Chicken Fingers",
+    "cuisine": ""
+  },
+  {
+    "name_key": "grilled chicken club",
+    "name": "Grilled Chicken Club",
+    "cat": "Mains",
+    "desc": "A hearty, satisfying sandwich with herb-grilled chicken breast, smoky bacon, fresh lettuce, and ripe tomato layered on thick-cut toasted sourdough.",
+    "price": "19",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/grilled-chicken-club.png",
+    "prompt": "professional food photography of Grilled Chicken Club",
+    "cuisine": ""
+  },
+  {
+    "name_key": "steak frites",
+    "name": "Steak Frites",
+    "cat": "Mains",
+    "desc": "An 8oz sirloin grilled to your liking, rested to perfection, and served alongside crispy golden fries with a knob of melting garlic butter. Simple. Classic. Delicious.",
+    "price": "32",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/steak-frites.png",
+    "prompt": "professional food photography of Steak Frites",
+    "cuisine": ""
+  },
+  {
+    "name_key": "french fries",
+    "name": "French Fries",
+    "cat": "Sides",
+    "desc": "Our classic fries — thin-cut, seasoned, and fried until irresistibly golden and crispy. The perfect companion to any meal.",
+    "price": "6",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/french-fries--side-.png",
+    "prompt": "professional food photography of French Fries",
+    "cuisine": ""
+  },
+  {
+    "name_key": "sweet potato fries",
+    "name": "Sweet Potato Fries",
+    "cat": "Sides",
+    "desc": "Crispy on the outside, tender on the inside — our seasoned sweet potato fries are a fan favourite. Served with a smoky chipotle dipping sauce.",
+    "price": "8",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/sweet-potato-fries.png",
+    "prompt": "professional food photography of Sweet Potato Fries",
+    "cuisine": ""
+  },
+  {
+    "name_key": "onion rings",
+    "name": "Onion Rings",
+    "cat": "Sides",
+    "desc": "Thick-cut onion rings dipped in a light, crispy beer batter and fried until golden. Crunchy, flavourful, and seriously addictive.",
+    "price": "8",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/onion-rings.png",
+    "prompt": "professional food photography of Onion Rings",
+    "cuisine": ""
+  },
+  {
+    "name_key": "new york cheesecake",
+    "name": "New York Cheesecake",
+    "cat": "Desserts",
+    "desc": "Rich, velvety, and deeply satisfying — a classic New York-style cheesecake with a buttery graham cracker crust, finished with a vibrant house-made berry compote.",
+    "price": "10",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/new-york-cheesecake.png",
+    "prompt": "professional food photography of New York Cheesecake",
+    "cuisine": ""
+  },
+  {
+    "name_key": "chocolate lava cake",
+    "name": "Chocolate Lava Cake",
+    "cat": "Desserts",
+    "desc": "Warm and indulgent with a gooey molten chocolate centre that flows with every bite. Served with a scoop of smooth vanilla ice cream. Pure dessert bliss.",
+    "price": "11",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/chocolate-lava-cake.png",
+    "prompt": "professional food photography of Chocolate Lava Cake",
+    "cuisine": ""
+  },
+  {
+    "name_key": "apple crumble",
+    "name": "Apple Crumble",
+    "cat": "Desserts",
+    "desc": "Warm, cinnamon-spiced apples baked beneath a golden buttery oat crumble. Served with a generous scoop of vanilla bean ice cream. Comfort in a bowl.",
+    "price": "9",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/apple-crumble.png",
+    "prompt": "professional food photography of Apple Crumble",
+    "cuisine": ""
+  },
+  {
+    "name_key": "stella artois",
+    "name": "Stella Artois",
+    "cat": "Drinks",
+    "desc": "A world-renowned Belgian pale lager with a clean, crisp finish and a hint of bitterness. Served ice cold. (330ml bottle)",
+    "price": "8",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/stella-artois.png",
+    "prompt": "professional food photography of Stella Artois",
+    "cuisine": ""
+  },
+  {
+    "name_key": "budweiser",
+    "name": "Budweiser",
+    "cat": "Drinks",
+    "desc": "America's classic lager — smooth, light, and refreshing with a clean finish. The one everyone knows. (341ml bottle)",
+    "price": "7",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/budweiser-can-and-glass.png",
+    "prompt": "professional food photography of Budweiser",
+    "cuisine": ""
+  },
+  {
+    "name_key": "heineken",
+    "name": "Heineken",
+    "cat": "Drinks",
+    "desc": "One of the world's most iconic beers. This premium Dutch lager is balanced, crisp, and endlessly refreshing. (330ml bottle)",
+    "price": "8",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/heineken-can.png",
+    "prompt": "professional food photography of Heineken",
+    "cuisine": ""
+  },
+  {
+    "name_key": "corona extra",
+    "name": "Corona Extra",
+    "cat": "Drinks",
+    "desc": "Light, bright, and made for good times. This Mexican lager is served with a fresh lime wedge for that signature citrus kick. (355ml bottle)",
+    "price": "8",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/corona-extra-with-lime.png",
+    "prompt": "professional food photography of Corona Extra",
+    "cuisine": ""
+  },
+  {
+    "name_key": "old fashioned",
+    "name": "Old Fashioned",
+    "cat": "Drinks",
+    "desc": "A timeless cocktail for the whiskey lover. Rich bourbon, aromatic bitters, and a whisper of sugar, stirred and garnished with a twist of orange peel.",
+    "price": "14",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/old-fashioned-cocktail.png",
+    "prompt": "professional food photography of Old Fashioned",
+    "cuisine": ""
+  },
+  {
+    "name_key": "margarita",
+    "name": "Margarita",
+    "cat": "Drinks",
+    "desc": "Bright, tangy, and perfectly balanced. Silver tequila shaken with fresh lime juice and agave nectar, served on the rocks with a salted rim.",
+    "price": "13",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/margarita-on-the-rocks.png",
+    "prompt": "professional food photography of Margarita",
+    "cuisine": ""
+  },
+  {
+    "name_key": "coca-cola",
+    "name": "Coca-Cola",
+    "cat": "Drinks",
+    "desc": "The world's favourite soft drink — ice-cold, perfectly carbonated, and always satisfying. (355ml can)",
+    "price": "3.5",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/coca-cola-can-and-glass.png",
+    "prompt": "professional food photography of Coca-Cola",
+    "cuisine": ""
+  },
+  {
+    "name_key": "diet coke",
+    "name": "Diet Coke",
+    "cat": "Drinks",
+    "desc": "All the bold Coca-Cola flavour with zero sugar. Cold, crisp, and refreshing. (355ml can)",
+    "price": "3.5",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/diet-coke-can-and-glass.png",
+    "prompt": "professional food photography of Diet Coke",
+    "cuisine": ""
+  },
+  {
+    "name_key": "iced tea",
+    "name": "Iced Tea",
+    "cat": "Drinks",
+    "desc": "Chilled and lightly sweetened lemon iced tea — a classic non-alcoholic option that's cool and refreshing any time of day.",
+    "price": "3.5",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/iced-tea-with-lemon.png",
+    "prompt": "professional food photography of Iced Tea",
+    "cuisine": ""
+  },
+  {
+    "name_key": "hot green tea",
+    "name": "Hot Green Tea",
+    "cat": "Drinks",
+    "desc": "A calming, aromatic cup of steamed green tea. Light, clean, and the perfect way to wind down.",
+    "price": "3",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/hot-green-tea-set.png",
+    "prompt": "professional food photography of Hot Green Tea",
+    "cuisine": ""
+  },
+  {
+    "name_key": "orange juice",
+    "name": "Orange Juice",
+    "cat": "Drinks",
+    "desc": "Freshly squeezed and full of natural sweetness. Pure orange juice with no pulp — bright, vibrant, and refreshing.",
+    "price": "4",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/fresh-orange-juice.png",
+    "prompt": "professional food photography of Orange Juice",
+    "cuisine": ""
+  },
+  {
+    "name_key": "apple juice",
+    "name": "Apple Juice",
+    "cat": "Drinks",
+    "desc": "Cool and crisp 100% pure apple juice — naturally sweet with a clean, refreshing finish. A great choice for any age.",
+    "price": "4",
+    "image_url": "https://pub-256270f3b6ae4b05a10dafb461aaab7e.r2.dev/apple-juice-.jpg",
+    "prompt": "professional food photography of Apple Juice",
+    "cuisine": ""
+  }
+]
