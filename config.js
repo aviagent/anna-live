@@ -22,7 +22,7 @@ window.AIHostGen.AIHostGenConfig = window.AIHostGenConfig = {
   // ── Fizzy-clover renderer (RunPod) ──────────────────────────────
   // Direct pod URL for live lipsync. Update when pod restarts.
   // Empty = audio-only fallback (no lipsync).
-  rendererPodUrl: '',  // empty = audio-only; set to pod URL when pod is running
+  rendererPodUrl: 'http://38.80.152.248:9871',  // fizzy-clover GPU pod
 
   rendererUrl: 'https://anna-avatar-worker.littf02.workers.dev',
 
